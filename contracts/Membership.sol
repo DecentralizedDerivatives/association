@@ -1,5 +1,5 @@
 pragma solidity ^0.4.21;
-import "./safemath.sol";
+import "./library/SafeMath.sol";
 
 contract Membership {
     using SafeMath for uint256;
@@ -44,7 +44,7 @@ contract Membership {
     /**
     *@dev Constructor - Sets owner
     */
-    constructor(Membership) public {
+    function Membership() public {
         owner = msg.sender;
     }
 
@@ -125,6 +125,14 @@ contract Membership {
     **/
     function countMembers() view public returns(uint) {
         return membersAccts.length;
+    }
+
+    function getBalance(address _member) view public returns(uint) {
+        return ownerMembershipCount[_member];
+    }
+
+        function getMemberType(address _member) public constant returns(uint){
+        return members[_member];
     }
     
 }
