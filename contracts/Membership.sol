@@ -17,7 +17,6 @@ contract Membership {
     struct Member {
         uint memberId;
         uint membershipType;
-        bool membership;
     }
     
     //Members information
@@ -66,7 +65,6 @@ contract Membership {
         uint membershipToken = membersAccts.length.add(1);
         sender.memberId = membershipToken;
         sender.membershipType = 1;
-        sender.membership = true;
         membersAccts.push(msg.sender)-1;
         return membershipToken;
     }
@@ -83,7 +81,6 @@ contract Membership {
         Member storage receiver = members[_to];
         receiver.memberId = sender.memberId;
         receiver.membershipType = sender.membershipType;
-        receiver.membership = sender.membership;
         sender.memberId = 0;
         sender.membershipType = 0;
         emit TransferFrom(_from, _to);
@@ -110,8 +107,8 @@ contract Membership {
     *@dev Get member information. could be the ownerOf funciton
     *@param _member address to pull the memberId, membershipType and membership
     **/
-    function getMember(address _member) view public returns(uint, uint, bool) {
-        return(members[_member].memberId, members[_member].membershipType, members[_member].membership);
+    function getMember(address _member) view public returns(uint, uint) {
+        return(members[_member].memberId, members[_member].membershipType);
     }
 
     /**
