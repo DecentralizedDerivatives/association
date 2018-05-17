@@ -19,14 +19,14 @@ contract Membership {
         uint membershipType;
     }
     
+    /*Mappings*/
     //Members information
     mapping(address => Member) public members;
     address[] public membersAccts;
-    mapping(address => uint) ownerMembershipCount;
 
-    
     /*Events*/
-    event TransferFrom(address _from, address _to);
+    event UpdateMemberAddress(address _from, address _to);
+    event NewMember(address _address, uint _memberId, uint _membershipType);
 
     /*Modifiers*/
     modifier onlyOwner() {
@@ -45,8 +45,6 @@ contract Membership {
     /*
     *@dev Updates the fee amount
     *@param _memberFee fee amount for member
-    *@param _investorFee fee amount for investor member
-    *@param _partnerFee fee amount for member
     */
     function setFee(uint _memberFee) public onlyOwner() {
         //define fee structure for the three membership types
@@ -56,44 +54,42 @@ contract Membership {
     /**
     *@notice Allows a user to become DDA members if they pay the fee. However, they still have to complete
     complete KYC/AML verification off line
-    *@dev this creates and transfers the token 
-    *@return returns the newly created token
+    *@dev this creates and transfers the token to the msg.sender
     */
-    function requestMembership() public payable returns (uint) {
+    function requestMembership() public payable {
         Member storage sender = members[msg.sender];
         require(msg.value >= memberFee && sender.membershipType == 0 );
-        uint membershipToken = membersAccts.length.add(1);
-        sender.memberId = membershipToken;
+        membersAccts.push(msg.sender);
+        sender.memberId = membersAccts.length;
         sender.membershipType = 1;
-        membersAccts.push(msg.sender)-1;
-        return membershipToken;
+        emit NewMember(msg.sender, sender.memberId, sender.membershipType);
     }
     
     /**
     *@dev This overload transferFrom function is required on ERC721.org
-    *@param _from is the address that the token will be sent from
-    *@param _to is the address we are sending the token to
-    *@param _tokenId the uint256 numeric identifier of a token or the memberId
+    *@param _from is the current member address
+    *@param _to is the address the member would like to update their current address with
     */
-    function transferFrom(address _from, address _to) public onlyOwner {
+    function updateMemberAddress(address _from, address _to) public onlyOwner {
         require (_to != address(0));
-        Member storage sender = members[_from];
-        Member storage receiver = members[_to];
-        receiver.memberId = sender.memberId;
-        receiver.membershipType = sender.membershipType;
-        sender.memberId = 0;
-        sender.membershipType = 0;
-        emit TransferFrom(_from, _to);
+        Member storage currentAddress = members[_from];
+        Member storage newAddress = members[_to];
+        newAddress.memberId = currentAddress.memberId;
+        newAddress.membershipType = currentAddress.membershipType;
+        currentAddress.memberId = 0;
+        currentAddress.membershipType = 0;
+        delete membersAccts[currentAddress.memberId];
+        emit UpdateMemberAddress(_from, _to);
     }
 
     /**
     *@dev Use this function to set membershipType for the member
-    *@param _member address of member that we need to update membershipType
+    *@param _memberAddress address of member that we need to update membershipType
     *@param _membershipType type of membership to assign to member
     **/
-    function setMembershipType(address _member,  uint _membershipType) public onlyOwner{
-        Member storage member = members[_member];
-        member.membershipType = _membershipType;
+    function setMembershipType(address _memberAddress,  uint _membershipType) public onlyOwner{
+        Member storage memberAddress = members[_memberAddress];
+        memberAddress.membershipType = _membershipType;
     }
 
     /**
@@ -105,10 +101,10 @@ contract Membership {
     
     /**
     *@dev Get member information. could be the ownerOf funciton
-    *@param _member address to pull the memberId, membershipType and membership
+    *@param _memberAddress address to pull the memberId, membershipType and membership
     **/
-    function getMember(address _member) view public returns(uint, uint) {
-        return(members[_member].memberId, members[_member].membershipType);
+    function getMember(address _memberAddress) view public returns(uint, uint) {
+        return(members[_memberAddress].memberId, members[_memberAddress].membershipType);
     }
 
     /**
@@ -119,10 +115,11 @@ contract Membership {
     }
 
     /**
-    *@dev gets membership count per owner but it should always be 1
+    *@dev gets membership type
+    *@param _memberAddress address to view the membershipType
     **/
-    function getMemberType(address _member) public constant returns(uint){
-        return members[_member].membershipType;
+    function getMembershipType(address _memberAddress) public constant returns(uint){
+        return members[_memberAddress].membershipType;
     }
     
     /**
@@ -132,5 +129,4 @@ contract Membership {
     function setOwner(address _new_owner) public onlyOwner() { 
         owner = _new_owner; 
     }
-
 }
