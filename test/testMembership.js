@@ -17,5 +17,14 @@ contract('Contracts', function(accounts) {
     console.log("ensure member type is greater than zero");
     });
 
+    it("Should assign tranfer membership details to new address", async function () {
+    await membership.transferFrom(accounts[0], accounts[1], {from: accounts[3]});
+    console.log("tranferFrom");
+    assert(await membership.getMemberType(accounts[0]) == 0, "MembershipType should be zero");
+    assert(await membership.getMemberType(accounts[1]) > 0, "MembershipType should not be zero");
+    console.log("ensure member type is greater than zero");
+    });
+
+
         	
 })
