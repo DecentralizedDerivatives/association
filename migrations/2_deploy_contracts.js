@@ -1,5 +1,5 @@
-var Wrapped_Ether = artifacts.require("./Wrapped_Ether.sol");
+var Membership = artifacts.require("./Membership.sol");
 
 module.exports = function(deployer){
-  deployer.deploy(Wrapped_Ether);
+  deployer.deploy(Membership);
 }
